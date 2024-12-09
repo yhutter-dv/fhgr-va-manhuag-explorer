@@ -18,9 +18,9 @@ pip3 install -r requirements.txt
 ```
 
 ## Preprocessing
-In order to preprocess the data a small Python Script named `preprocessing.py` was written. The script expects an `input file` and the name of the `output file`
+In order to preprocess the data a small Python Script named `preprocessing.py` was written. 
 ```bash
-python3 preprocessing.py data.csv data_preprocessed.json
+python3 preprocessing.py 
 ```
 
 ## Running the Application

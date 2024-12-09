@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+:root {
+	--background: #282828;
+	--background-secondary: #504945;
+	--foreground: #EBDBB2;
+	--yellow: #FABD2F;
+	--green: #B8BB26;
+	--blue: #83A598;
+	--header-height: 2rem;
+	--chart-initial-height: 200px;
+}
+
+body {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	font-family: "Inter", serif;
+	color: var(--foreground);
+	margin: 0;
+	padding: 0;
+	background-color: var(--background);
+}
+
+header {
+	padding: 1.5rem;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	color: var(--yellow);
+	height: var(--header-height);
+	flex-grow: 0;
+}
+
+.wrapper {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+
+}
+
+.spacer {
+	flex-grow: 1;
+}
+
+#dashboard {
+	display: flex;
+	flex-grow: 1;
+	flex-shrink: 1;
+	flex-direction: row;
+
+	#content {
+		flex-grow: 1;
+		padding: 0.5rem;
+		background-color: var(--background-secondary);
+
+
+		.grid {
+			/*Implemented with reference to: https://css-tricks.com/snippets/css/complete-guide-grid/ */
+			display: grid;
+			height: 100%;
+			grid-template-columns: repeat(2, 1fr);
+			grid-template-rows: repeat(3, 1fr);
+			gap: 0.5rem;
+
+			.chart-container {
+				min-height: 300px;
+			}
+
+			#similar-mangas {
+				grid-column-start: 1;
+				grid-column-end: span 2;
+			}
+
+			#number-of-mangas-per-tag {
+				grid-column-start: 1;
+				grid-column-end: span 2;
+			}
+		}
+
+		.card {
+			display: flex;
+			flex-direction: column;
+			background-color: var(--background);
+			padding: 1.5rem;
+			border-radius: 12px;
+			box-shadow: 4px 4px 32px 0px var(--background);
+
+			.chart-container {
+				flex-grow: 1;
+				height: var(--chart-initial-height);
+				svg {
+					width: 100%;
+				}
+			}
+
+			.title {
+				margin: 0;
+				padding: 0;
+				font-size: 1.2rem;
+				font-weight: 600;
+			}
+		}
+	}
+
+	#filter-settings {
+		display: flex;
+		flex-direction: column;
+		padding: 0.75rem 1.5rem;
+		background-color: var(--background);
+
+		section {
+			margin-bottom: 2rem;
+		}
+
+		.title {
+			font-weight: 600;
+		}
+
+		.section-title {
+			font-size: 1rem;
+		}
+
+		.select-button {
+			background-color: var(--background);
+			border: 1px solid var(--foreground);
+			padding: 0.5rem;
+			border-radius: 4px;
+			color: var(--foreground);
+			transition: all 0.25s ease-in;
+
+			&.active {
+				background-color: var(--foreground);
+				color: var(--background);
+			}
+
+			&:hover {
+				background-color: var(--foreground);
+				color: var(--background);
+				cursor: pointer;
+			}
+		}
+
+
+		.primary-button {
+			background-color: var(--yellow);
+			border: 1px solid var(--yellow);
+			padding: 0.625rem 0.75rem;
+			border-radius: 4px;
+			color: var(--background);
+			font-weight: 600;
+			margin-top: 2rem;
+		}
+
+	}
+}
+
