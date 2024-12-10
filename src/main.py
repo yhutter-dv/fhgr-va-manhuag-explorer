@@ -1,4 +1,5 @@
 from dash import Dash, dcc, html, Input, Output, callback
+import dash_bootstrap_components as dbc
 import plotly.express as px
 import numpy as np
 import pandas as pd
@@ -59,7 +60,13 @@ def update_scatter_number_of_mangas_per_tag(timerange_slider_value, tags_dropdow
     return fig
 
 def prepare_layout():
-    header = html.Header([html.H1("Manhuag Explorer")])
+    header = dbc.NavbarSimple(
+        brand="Manhuag Explorer",
+        brand_href="#",
+        color="primary",
+        dark=True,
+    )
+    # header = html.Header([html.H1("Manhuag Explorer")])
 
     initial_tag_dropdown_value = tag_dropdown_options[0]["value"]
 
@@ -71,68 +78,80 @@ def prepare_layout():
     )
 
     tags_section = html.Section([
-		html.H4("Select Tags you are interested in", className="section-title"),
+		html.H6("Select Tags you are interested in", className="text-secondary"),
         tags_dropdown
-    ])
+    ], className="py-2")
 
-    tooltip_style = {
-        "color": "var(--foreground)",
-        "backgroundColor": "var(--background)",
-    } 
 
     timerange_slider = dcc.RangeSlider(min_year, max_year, 1, value=[min_year, max_year], marks=None, tooltip={
         "placement": "bottom",
         "always_visible": True,
-        "style": tooltip_style,
     }, id=timerange_slider_id)
 
     timerange_section = html.Section([
-		html.H4("Select a Timerange you are interested in", className="section-title"),
+		html.H6("Select a Timerange you are interested in", className="text-secondary"),
         timerange_slider
-    ])
+    ], className="py-2")
 
-    spacer = html.Div([], className="spacer")
 
     filter_settings = html.Aside([
-    	html.H3("Filter Settings", className="title"),
+    	html.H3("Filter Settings", className="text-primary"),
     	tags_section,
     	timerange_section,
-   	], id="filter-settings")
+   	], id="filter-settings", className="sticky-top p-1")
 
-    similar_mangas = html.Div([
-        html.H4("Liked Solo Leveling?", className="title yellow"),
-        html.Div([], className="chart-container")
-    ], className="card", id="similar-mangas")
+    similar_mangas = dbc.Card([
+        dbc.CardBody([
+            html.H4("Liked Solo Leveling?", className="text-primary"),
+            html.Div([dcc.Graph()])
+        ])
+    ])
 
+    top_results_for_tag = dbc.Card([
+        dbc.CardBody([
+            html.H4("Top 5 Results for Tag asdf", className="text-primary"),
+            html.Div([dcc.Graph()])
+        ])
+    ])
 
-    top_results_for_tag = html.Div([
-        html.H4("Top 5 Results for Tag asdf", className="title yellow"),
-        html.Div([], className="chart-container")
-    ], className="card")
+    average_score_for_tags_over_time = dbc.Card([
+        dbc.CardBody([
+            html.H4("Average Score for Tags over Time", className="text-primary"),
+            html.Div([dcc.Graph()])
+        ])
+    ])
 
-    average_score_for_tags_over_time = html.Div([
-        html.H4("Average Score for Tags over Time", className="title yellow"),
-        html.Div([], className="chart-container")
-    ], className="card")
-
-    number_of_mangas_per_tag = html.Div([
-        html.H4("Number of Mangas per Tag", className="title yellow"),
-        html.Div([dcc.Graph(id=scatter_number_of_mangas_per_tag_id)], className="chart-container"),
-    ], className="card", id="number-of-mangas-per-tag")
+    number_of_mangas_per_tag = dbc.Card([
+        dbc.CardBody([
+            html.H4("Number of Mangas per Tag", className="text-primary"),
+            html.Div([dcc.Graph(id=scatter_number_of_mangas_per_tag_id)]),
+        ])
+    ])
 
     main_content = html.Main([
         html.Div([
-            similar_mangas,
-            top_results_for_tag,
-            average_score_for_tags_over_time,
-            number_of_mangas_per_tag
-        ], className="grid")
-    ], id="content")
-    dashboard = html.Div([filter_settings, main_content], id="dashboard")
-    return html.Div([header, dashboard], className="wrapper")
+            dbc.Row([
+                dbc.Col(similar_mangas, md=12)
+            ], className="py-1"),
+            dbc.Row([
+                dbc.Col(top_results_for_tag, md=6),
+                dbc.Col(average_score_for_tags_over_time, md=6),
 
+            ], className="py-1"),
+            dbc.Row([
+                dbc.Col(number_of_mangas_per_tag, md=12)
+            ], className="py-1"),
+        ])
+    ])
 
-app = Dash(__name__, external_stylesheets=[])
+    dashboard = dbc.Container(dbc.Row([
+        dbc.Col(filter_settings, md=3),
+        dbc.Col(main_content, md=9)
+    ]), className="container-fluid" )
+
+    return html.Div([header, dashboard])
+
+app = Dash(__name__, external_stylesheets=[dbc.themes.MATERIA])
 app.title = "Manhuag Explorer"
 app.layout = prepare_layout()
 server = app.server
