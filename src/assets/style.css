@@ -1,24 +1,59 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
-/*
+/*https://monokai.pro/*/
 :root {
-	--background: #282828;
-	--background-secondary: #504945;
-	--foreground: #ebdbb2;
-	--yellow: #fabd2f;
-	--green: #b8bb26;
-	--blue: #83a598;
+	--background: #211f22;
+	--background-secondary: #2c2a2e;
+	--foreground: #fcfcfa;
+	--yellow: #f9d978;
+	--green: #b3db82;
+	--blue: #91da96;
 	--header-height: 2rem;
 	--chart-initial-height: 200px;
 }
-*/
 
-/*https://www.nordtheme.com/docs/colors-and-palettes*/
-:root {
-	--background: #ffffff;
-	--background-secondary: #e5e9f0;
-	--foreground: #3b4252;
-	--header-height: 2rem;
+.rc-slider-tooltip-inner {
+	border-radius: 0;
+	box-shadow: none;
+	background-color: var(--background);
+	padding: 0.5rem;
+}
+
+
+.rc-slider-handle {
+	border: 2px solid var(--yellow);
+	background-color: var(--background);
+}
+
+.rc-slider-track {
+	background-color: var(--yellow);
+}
+
+.rc-slider-dot {
+	background-color: var(--background);
+	border: 1px solid var(--foreground);
+}
+
+.rc-slider-dot-active {
+	border-color: var(--yellow);
+}
+
+.dash-dropdown {
+	border: none;
+}
+
+.Select-control {
+	background-color: var(--background);
+	border: 1px solid var(--yellow);
+}
+
+.is-open>.Select-control {
+	background-color: var(--background);
+}
+
+.Select-menu-outer {
+	background-color: var(--background);
+	color: var(--foreground);
 }
 
 body {
@@ -34,7 +69,6 @@ body {
 
 header {
 	padding: 1.5rem;
-	background-color: var(--background-secondary);
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -46,7 +80,10 @@ header {
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+}
 
+.tooltip {
+	color: red;
 }
 
 .spacer {
@@ -89,6 +126,7 @@ header {
 			flex-direction: column;
 			background-color: var(--background);
 			padding: 1.5rem;
+			border: 1px solid black;
 			border-radius: 4px;
 
 			.chart-container {
@@ -108,7 +146,6 @@ header {
 		display: flex;
 		flex-direction: column;
 		padding: 0.75rem 1.5rem;
-		background-color: var(--background-secondary);
 		height: 100vh;
 
 		section {
