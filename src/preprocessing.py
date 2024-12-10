@@ -74,7 +74,7 @@ def main():
 
 	# Initialize dataframe in order to easily calculate some values for each tag such as average score per year etc.
 	manga_df = pd.DataFrame.from_dict(mangas)
-	print("Precalculating values... (grab a coffee this might take a while)")
+	print("Precalculating values (grab a coffee this might take a while) ...")
 	for tag_description in preprocessed_data["tag_descriptions"]:
 		current_tag_id = tag_description["tag_id"]
 		current_tag = tag_description["tag_description"]
@@ -94,11 +94,11 @@ def main():
 				"year": year,
 				"average_rating" : avg_rating,
 				"number_of_mangas": num_elements,
-				"manga_ratings": [],
 				"top_ratings": []
 			}
 
 			# Add ids of mangas
+			ratings = []
 			for index, row in filtered_df.iterrows():
 				rating = row["rating"]
 				id = row["id"]
@@ -109,10 +109,10 @@ def main():
 					"title": title,
 					"year": year
 				}
-				tag_data_per_year["manga_ratings"].append(rating)
+				ratings.append(rating)
 
 			# Find Top 3 Ratings
-			sorted_ratings = sorted(tag_data_per_year["manga_ratings"], key=lambda d: d['rating'], reverse=True)
+			sorted_ratings = sorted(ratings, key=lambda d: d['rating'], reverse=True)
 			tag_data_per_year["top_ratings"] = sorted_ratings[0:3]
 			preprocessed_data["tags"].append(tag_data_per_year)
 
