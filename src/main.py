@@ -1,5 +1,6 @@
 from dash import Dash, dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
+import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
 import pandas as pd
@@ -24,12 +25,6 @@ max_year = years[0]
 min_year = years[-1]
 tag_dropdown_options = [{ "label": t["tag_description"], "value": t["tag_id"] } for t in tag_descriptions]
 
-def calc_marker_size_safe(row):
-    min_size = 0.1
-    if pd.isna(row["average_rating"]):
-        return min_size
-    return (row["average_rating"] / 10.0) + min_size
-
 @callback(
     Output(component_id=scatter_number_of_mangas_per_tag_id, component_property='figure'),
     Input(component_id=timerange_slider_id, component_property='value'),
@@ -48,15 +43,15 @@ def update_scatter_number_of_mangas_per_tag(timerange_slider_value, tags_dropdow
 
     # Filter by year and tags
     scatter_df = tags_df[(tags_df["year"] >= min_year) & (tags_df["year"] <= max_year) & (tags_df["tag_id"].isin(tags_to_filter))].copy()
-    scatter_df["marker_size"] = scatter_df.apply(calc_marker_size_safe, axis=1)
-    hover_data = { "marker_size": False }
+    # Remove any rows where the average rating is NAN
+    scatter_df = scatter_df.dropna(subset=['average_rating'])
     fig = px.scatter(scatter_df,
         x="year",
         y="number_of_mangas",
-        size="marker_size",
+        size="average_rating",
+        size_max=5.0,
         color="tag_id",
         hover_name="tag_id",
-        hover_data=hover_data
     )
     return fig
 
@@ -78,8 +73,15 @@ def update_line_avg_score_for_tags_over_time(timerange_slider_value, tags_dropdo
 
     # Filter by year and tags
     line_df = tags_df[(tags_df["year"] >= min_year) & (tags_df["year"] <= max_year) & (tags_df["tag_id"].isin(tags_to_filter))].copy()
+    # Remove any rows where the average rating is NAN
+    line_df = line_df.dropna(subset=['average_rating'])
+
+    # Explode the manga ratings and combine them into a new dataframe
+    # df_manga_ratings = line_df.explode("manga_ratings")
+    # scatter_df = pd.DataFrame(df_manga_ratings['manga_ratings'].tolist())
     fig = px.line(line_df, x="year", y="average_rating", color="tag_id")
-    return fig
+    # fig_line.add_trace(go.Scatter(x=scatter_df['year'], y=scatter_df['rating'], mode='markers'))
+    return fig 
 
 def prepare_layout():
     header = dbc.NavbarSimple(

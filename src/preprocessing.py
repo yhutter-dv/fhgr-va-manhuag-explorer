@@ -32,6 +32,10 @@ def main():
 	with open(src_data_path, "r", encoding="utf-8") as f:
 		reader = csv.DictReader(f)
 		for index, line in enumerate(reader):
+			# Only keep mangas with ratings and year
+			if line["rating"] == "" or line["year"] == "nan":
+				continue
+
 			# Tags is currently a string "['tag1', 'tag2']"
 			# We need to convert it into a list (we can simply split by ,)
 			tags_str = line["tags"]
@@ -42,15 +46,10 @@ def main():
 
 			title = line["title"]
 			description = line["description"]
-			rating = None
-			if line["rating"] != "":
-				rating = float(line["rating"])
+			rating = float(line["rating"])
 			cover =  line["cover"]
-			year = None,
-			if line["year"] != "nan":
-				year = int(line["year"])
-				years.append(year)
-
+			year = int(line["year"])
+			years.append(year)
 			manga_obj = {
 				"id": index,
 				"title": title,
@@ -75,7 +74,7 @@ def main():
 
 	# Initialize dataframe in order to easily calculate some values for each tag such as average score per year etc.
 	manga_df = pd.DataFrame.from_dict(mangas)
-	print("Precalculating values for each tag and year")
+	print("Precalculating values... (grab a coffee this might take a while)")
 	for tag_description in preprocessed_data["tag_descriptions"]:
 		current_tag_id = tag_description["tag_id"]
 		current_tag = tag_description["tag_description"]
@@ -84,7 +83,6 @@ def main():
 			filtered_df = manga_df[(manga_df["year"] == year)]
 			filtered_df = filtered_df[filtered_df["tags"].apply(lambda x: current_tag in x)]
 			num_elements = len(filtered_df)
-
 			avg_rating = None 
 			if num_elements > 0:
 				# Debug Purpose
@@ -96,13 +94,26 @@ def main():
 				"year": year,
 				"average_rating" : avg_rating,
 				"number_of_mangas": num_elements,
-				"manga_ids": []
+				"manga_ratings": [],
+				"top_ratings": []
 			}
 
 			# Add ids of mangas
 			for index, row in filtered_df.iterrows():
+				rating = row["rating"]
 				id = row["id"]
-				tag_data_per_year["manga_ids"].append(id)
+				title = row["title"]
+				rating = {
+					"id": id,
+					"rating": rating,
+					"title": title,
+					"year": year
+				}
+				tag_data_per_year["manga_ratings"].append(rating)
+
+			# Find Top 3 Ratings
+			sorted_ratings = sorted(tag_data_per_year["manga_ratings"], key=lambda d: d['rating'], reverse=True)
+			tag_data_per_year["top_ratings"] = sorted_ratings[0:3]
 			preprocessed_data["tags"].append(tag_data_per_year)
 
 	# Save preprocessed data file
