@@ -11,6 +11,7 @@ def load_preprocessed_data():
     return preprocessed_data
 
 scatter_number_of_mangas_per_tag_id = "scatter-number-of-mangas-per-tag-id"
+line_avg_score_for_tags_over_time_id = "line-avg-score-for-tags_over-time-id "
 timerange_slider_id = "time-ranger-slider-id"
 tags_dropdown_id = "tags-dropdown-id"
 
@@ -57,6 +58,27 @@ def update_scatter_number_of_mangas_per_tag(timerange_slider_value, tags_dropdow
         hover_name="tag_id",
         hover_data=hover_data
     )
+    return fig
+
+@callback(
+    Output(component_id=line_avg_score_for_tags_over_time_id, component_property='figure'),
+    Input(component_id=timerange_slider_id, component_property='value'),
+    Input(component_id=tags_dropdown_id, component_property='value'),
+)
+def update_line_avg_score_for_tags_over_time(timerange_slider_value, tags_dropdown_value):
+    min_year = timerange_slider_value[0]
+    max_year = timerange_slider_value[1]
+    tags_to_filter = []
+    # The inital value if no element is selected can be a string such as 'action' instead of a list
+    # God knows why...
+    if type(tags_dropdown_value) is list:
+        tags_to_filter = tags_dropdown_value
+    else:
+        tags_to_filter = [tags_dropdown_value]
+
+    # Filter by year and tags
+    line_df = tags_df[(tags_df["year"] >= min_year) & (tags_df["year"] <= max_year) & (tags_df["tag_id"].isin(tags_to_filter))].copy()
+    fig = px.line(line_df, x="year", y="average_rating", color="tag_id")
     return fig
 
 def prepare_layout():
@@ -117,7 +139,7 @@ def prepare_layout():
     average_score_for_tags_over_time = dbc.Card([
         dbc.CardBody([
             html.H4("Average Score for Tags over Time", className="text-primary"),
-            html.Div([dcc.Graph()])
+            html.Div([dcc.Graph(id=line_avg_score_for_tags_over_time_id)])
         ])
     ])
 
