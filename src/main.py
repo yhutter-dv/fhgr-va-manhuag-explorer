@@ -13,17 +13,51 @@ def load_preprocessed_data():
 
 scatter_number_of_mangas_per_tag_id = "scatter-number-of-mangas-per-tag-id"
 line_avg_score_for_tags_over_time_id = "line-avg-score-for-tags_over-time-id "
+bar_top_ratings_for_tags_id = "bar-top-ratings-for-tags-id "
+
 timerange_slider_id = "time-ranger-slider-id"
 tags_dropdown_id = "tags-dropdown-id"
 
 preprocessed_data = load_preprocessed_data()
 tag_descriptions = preprocessed_data["tag_descriptions"]
+
 tags_df = pd.DataFrame(preprocessed_data["tags"])
+top_ratings_df = pd.DataFrame(preprocessed_data["top_ratings"])
+
 years = preprocessed_data["years"]
 # Years are already sorted in descending order
 max_year = years[0]
 min_year = years[-1]
 tag_dropdown_options = [{ "label": t["tag_description"], "value": t["tag_id"] } for t in tag_descriptions]
+
+@callback(
+    Output(component_id=bar_top_ratings_for_tags_id, component_property='figure'),
+    Input(component_id=timerange_slider_id, component_property='value'),
+    Input(component_id=tags_dropdown_id, component_property='value'),
+)
+def update_bar_top_ratings_for_tags(timerange_slider_value, tags_dropdown_value):
+    min_year = timerange_slider_value[0]
+    max_year = timerange_slider_value[1]
+    tags_to_filter = []
+    # The inital value if no element is selected can be a string such as 'action' instead of a list
+    # God knows why...
+    if type(tags_dropdown_value) is list:
+        tags_to_filter = tags_dropdown_value
+    else:
+        tags_to_filter = [tags_dropdown_value]
+
+    # Filter by year and tags
+    bar_df = top_ratings_df[(top_ratings_df["year"] >= min_year) & (top_ratings_df["year"] <= max_year) & (top_ratings_df["tag_id"].isin(tags_to_filter))].copy()
+    fig = px.bar(bar_df,
+        x='year',
+        y='rating',
+        barmode="group",
+        color='tag_id',
+        text='title', 
+        labels={'rating': 'Manga Rating', 'year': 'Year'},)
+    return fig
+
+
 
 @callback(
     Output(component_id=scatter_number_of_mangas_per_tag_id, component_property='figure'),
@@ -133,8 +167,8 @@ def prepare_layout():
 
     top_results_for_tag = dbc.Card([
         dbc.CardBody([
-            html.H4("Top 5 Results for Tag asdf", className="text-primary"),
-            html.Div([dcc.Graph()])
+            html.H4("Top Results for Tags", className="text-primary"),
+            html.Div([dcc.Graph(id=bar_top_ratings_for_tags_id)])
         ])
     ])
 

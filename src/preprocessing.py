@@ -72,6 +72,8 @@ def main():
 	years.sort(reverse=True)
 	preprocessed_data["years"] = years
 
+	preprocessed_data["top_ratings"] = []
+
 	# Initialize dataframe in order to easily calculate some values for each tag such as average score per year etc.
 	manga_df = pd.DataFrame.from_dict(mangas)
 	print("Precalculating values (grab a coffee this might take a while) ...")
@@ -94,7 +96,6 @@ def main():
 				"year": year,
 				"average_rating" : avg_rating,
 				"number_of_mangas": num_elements,
-				"top_ratings": []
 			}
 
 			# Add ids of mangas
@@ -104,16 +105,18 @@ def main():
 				id = row["id"]
 				title = row["title"]
 				rating = {
-					"id": id,
+					"tag_id": current_tag_id,
+					"manga_id": id,
 					"rating": rating,
 					"title": title,
 					"year": year
 				}
 				ratings.append(rating)
 
-			# Find Top 3 Ratings
+			# Find Top Ratings
 			sorted_ratings = sorted(ratings, key=lambda d: d['rating'], reverse=True)
-			tag_data_per_year["top_ratings"] = sorted_ratings[0:3]
+			if (len(sorted_ratings) > 0):
+				preprocessed_data["top_ratings"].append(sorted_ratings[0]) 
 			preprocessed_data["tags"].append(tag_data_per_year)
 
 	# Save preprocessed data file
