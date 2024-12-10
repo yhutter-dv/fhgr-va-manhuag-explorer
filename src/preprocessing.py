@@ -79,38 +79,31 @@ def main():
 	for tag_description in preprocessed_data["tag_descriptions"]:
 		current_tag_id = tag_description["tag_id"]
 		current_tag = tag_description["tag_description"]
-		tag_obj = {
-			"tag_id": current_tag_id,
-			"tag_description": current_tag,
-		}
 		for year in preprocessed_data["years"]:
 			# Filter by year and specific tag
 			filtered_df = manga_df[(manga_df["year"] == year)]
 			filtered_df = filtered_df[filtered_df["tags"].apply(lambda x: current_tag in x)]
 			num_elements = len(filtered_df)
 
-			avg_rating = None
+			avg_rating = None 
 			if num_elements > 0:
 				# Debug Purpose
 				# print(f"Searching for Tag {current_tag} for Year {year} and found {num_elements} results")
 				avg_rating = filtered_df["rating"].mean()
 
 			tag_data_per_year = {
+				"tag_id": current_tag_id,
+				"year": year,
 				"average_rating" : avg_rating,
 				"number_of_mangas": num_elements,
-				"mangas": []
+				"manga_ids": []
 			}
+
+			# Add ids of mangas
 			for index, row in filtered_df.iterrows():
-				similar_mangas = []
-				manga_obj = {
-					"id": row["id"],
-					"similar_mangas": []
-				}
-				# TODO: Calculate similar mangas
-				manga_obj["similar_mangas"] = similar_mangas
-				tag_data_per_year["mangas"].append(manga_obj)
-			tag_obj[year] = tag_data_per_year
-		preprocessed_data["tags"].append(tag_obj)
+				id = row["id"]
+				tag_data_per_year["manga_ids"].append(id)
+			preprocessed_data["tags"].append(tag_data_per_year)
 
 	# Save preprocessed data file
 	with open(dest_data_path, 'w', encoding='utf-8') as f:
