@@ -1,13 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+/*
 :root {
 	--background: #282828;
 	--background-secondary: #504945;
-	--foreground: #EBDBB2;
-	--yellow: #FABD2F;
-	--green: #B8BB26;
-	--blue: #83A598;
+	--foreground: #ebdbb2;
+	--yellow: #fabd2f;
+	--green: #b8bb26;
+	--blue: #83a598;
 	--header-height: 2rem;
 	--chart-initial-height: 200px;
+}
+*/
+
+/*https://www.nordtheme.com/docs/colors-and-palettes*/
+:root {
+	--background: #ffffff;
+	--background-secondary: #e5e9f0;
+	--foreground: #3b4252;
+	--header-height: 2rem;
 }
 
 body {
@@ -23,10 +34,10 @@ body {
 
 header {
 	padding: 1.5rem;
+	background-color: var(--background-secondary);
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	color: var(--yellow);
 	height: var(--header-height);
 	flex-grow: 0;
 }
@@ -62,10 +73,6 @@ header {
 			grid-template-rows: repeat(3, 1fr);
 			gap: 0.5rem;
 
-			.chart-container {
-				min-height: 300px;
-			}
-
 			#similar-mangas {
 				grid-column-start: 1;
 				grid-column-end: span 2;
@@ -82,15 +89,10 @@ header {
 			flex-direction: column;
 			background-color: var(--background);
 			padding: 1.5rem;
-			border-radius: 12px;
-			box-shadow: 4px 4px 32px 0px var(--background);
+			border-radius: 4px;
 
 			.chart-container {
 				flex-grow: 1;
-				height: var(--chart-initial-height);
-				svg {
-					width: 100%;
-				}
 			}
 
 			.title {
@@ -106,7 +108,8 @@ header {
 		display: flex;
 		flex-direction: column;
 		padding: 0.75rem 1.5rem;
-		background-color: var(--background);
+		background-color: var(--background-secondary);
+		height: 100vh;
 
 		section {
 			margin-bottom: 2rem;
