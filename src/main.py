@@ -37,7 +37,7 @@ years = preprocessed_data["years"]
 # Years are already sorted in descending order
 max_year = years[0]
 min_year = years[-1]
-tag_dropdown_options = [{ "label": t["tag_description"], "value": t["tag_id"] } for t in tag_descriptions]
+tag_dropdown_options = [{ "label": f"{t['tag_description']} ({t['num_mangas_total']})", "value": t["tag_id"] } for t in tag_descriptions]
 
 @callback(
     Output(component_id=bar_top_ratings_for_tags_id, component_property='figure'),

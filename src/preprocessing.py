@@ -94,6 +94,7 @@ def main():
 	for tag_description in preprocessed_data["tag_descriptions"]:
 		current_tag_id = tag_description["tag_id"]
 		current_tag = tag_description["tag_description"]
+		num_mangas_total = 0
 		for year in preprocessed_data["years"]:
 			# Filter by year and specific tag
 			filtered_df = manga_df[(manga_df["year"] == year)]
@@ -111,6 +112,10 @@ def main():
 				"average_rating" : avg_rating,
 				"number_of_mangas": num_elements,
 			}
+
+
+			# Keep track of number of mangas total overall.
+			num_mangas_total = num_mangas_total + num_elements
 
 			# Add ids of mangas
 			ratings = []
@@ -132,6 +137,13 @@ def main():
 			if (len(sorted_ratings) > 0):
 				preprocessed_data["top_ratings"].append(sorted_ratings[0]) 
 			preprocessed_data["tags"].append(tag_data_per_year)
+
+		# Add overall number of mangas total to tag_description
+		tag_description["num_mangas_total"] = num_mangas_total
+
+	# Sort tag description by num_mangas_total
+	sorted_tag_descriptions = sorted(preprocessed_data["tag_descriptions"], key=lambda d: d['num_mangas_total'], reverse=True)
+	preprocessed_data["tag_descriptions"] = sorted_tag_descriptions
 
 	# Calculate similarty rating between mangas
 	print("Calculating similarity ratings between mangas (grab a coffee this might take a while) ...")
