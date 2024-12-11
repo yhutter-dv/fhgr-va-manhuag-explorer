@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, callback
+from dash import Dash, dcc, html, Input, Output, callback, no_update
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import plotly.express as px
@@ -19,6 +19,8 @@ def load_manga_data():
 scatter_number_of_mangas_per_tag_id = "scatter-number-of-mangas-per-tag-id"
 line_avg_score_for_tags_over_time_id = "line-avg-score-for-tags_over-time-id "
 bar_top_ratings_for_tags_id = "bar-top-ratings-for-tags-id "
+bar_similar_mangas_id = "bar-similar-mangas-id "
+similar_mangas_title_id = "similar-mangas-title-id"
 
 timerange_slider_id = "time-ranger-slider-id"
 tags_dropdown_id = "tags-dropdown-id"
@@ -58,6 +60,7 @@ def update_bar_top_ratings_for_tags(timerange_slider_value, tags_dropdown_value)
     fig = px.bar(bar_df,
         x='year',
         y='rating',
+        custom_data='manga_id',
         barmode="group",
         color='tag_id',
         text='title', 
@@ -118,15 +121,23 @@ def update_line_avg_score_for_tags_over_time(timerange_slider_value, tags_dropdo
     # Remove any rows where the average rating is NAN
     line_df = line_df.dropna(subset=['average_rating'])
 
-    # Explode the manga ratings and combine them into a new dataframe
-    # df_manga_ratings = line_df.explode("manga_ratings")
-    # scatter_df = pd.DataFrame(df_manga_ratings['manga_ratings'].tolist())
     fig = px.line(line_df, x="year", y="average_rating", color="tag_id")
-    # fig_line.add_trace(go.Scatter(x=scatter_df['year'], y=scatter_df['rating'], mode='markers'))
     return fig 
 
 
-def update_bar_similar_mangas(manga_id):
+@callback(
+    Output(component_id=similar_mangas_title_id, component_property='children'),
+    Output(component_id=bar_similar_mangas_id, component_property='figure'),
+    Input(component_id=bar_top_ratings_for_tags_id, component_property='clickData'),
+)
+def update_bar_similar_mangas(top_results_data):
+    if top_results_data == None:
+        return no_update
+
+    # Extract the manga_id out of the customdata
+    first_point = top_results_data["points"][0]
+    manga_id = first_point["customdata"][0]
+    manga_title = first_point["text"]
     # Find the matching manga and extract out similar mangas into its own data frame.
     df_similar_mangas = manga_df[manga_df["id"] == manga_id].explode("similar_mangas")
     df_similar_mangas = pd.DataFrame(df_similar_mangas['similar_mangas'].tolist())
@@ -135,7 +146,9 @@ def update_bar_similar_mangas(manga_id):
         x='title',
         y='similarity_score',
     )
-    return fig
+
+    title = f"Liked '{manga_title}' ?"
+    return (title, fig)
 
 def prepare_layout():
     header = dbc.NavbarSimple(
@@ -178,12 +191,10 @@ def prepare_layout():
     	timerange_section,
    	], id="filter-settings", className="sticky-top p-1")
 
-    fig = update_bar_similar_mangas(0)
-
     similar_mangas = dbc.Card([
         dbc.CardBody([
-            html.H4("Liked Solo Leveling?", className="text-primary"),
-            html.Div([dcc.Graph(figure=fig)])
+            html.H4("Select a Manga", id=similar_mangas_title_id, className="text-primary"),
+            html.Div([dcc.Graph(id=bar_similar_mangas_id)])
         ])
     ])
 
