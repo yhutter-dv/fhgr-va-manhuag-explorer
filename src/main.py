@@ -5,6 +5,7 @@ import plotly.express as px
 import numpy as np
 import pandas as pd
 import json
+import requests
 
 def load_preprocessed_data():
     with open("./data_preprocessed.json") as f:
@@ -174,7 +175,6 @@ def update_bar_similar_mangas(top_results_data):
     Input(component_id=bar_similar_mangas_id, component_property='clickData'),
 )
 def update_manga_detail_modal(similar_manga_data):
-    print(similar_manga_data)
     if similar_manga_data == None:
         return no_update
     first_point = similar_manga_data["points"][0]
@@ -182,18 +182,29 @@ def update_manga_detail_modal(similar_manga_data):
     manga = manga_df[manga_df["id"] == manga_id]
     manga_title = manga["title"].iloc[0]
     manga_description = manga["description"].iloc[0]
-    title = f"Details about '{manga_title}'"
 
-    # TODO: Get similar mangas via Jikan API
+    # Get recommendations via Jikan REST API
+    # See here for more information: https://docs.api.jikan.moe/
+    # TODO: This is pretty slow -> preprocess the data (takes 10 hours though as it takes roughly 1 second per element and we have around 35000 entries)
+    # recommendations = get_jikan_manga_recommendations(manga_title)
+    # recommendation_title = "No recommendations found"
+    # if len(recommendations) > 0:
+    #     recommendation_title = "You may also like"
+    # list_elements = []
+
+    # # Create list elements for each recommendation
+    # for recommendation in recommendations:
+    #     title, url = recommendation
+    #     list_element = html.Li(html.A(title, href=url, target='_blank'))
+    #     list_elements.append(list_element)
+
     body = html.Div([
         html.H3("Story"),
         html.P(manga_description),
-        html.H3("You may also like"),
-        html.Ul([
-            html.Li(html.A("Link to Anime Planet", href='https://anime-planet.com', target='_blank')),
-        ]),
+        # html.H3("You may also like"),
+        # html.Ul(list_elements),
     ])
-    return (True, title, body)
+    return (True, manga_title, body)
 
 def prepare_layout():
     header = dbc.NavbarSimple(
@@ -292,6 +303,46 @@ def prepare_layout():
     ]), className="container-fluid" )
 
     return html.Div([header, dashboard, modal_dialog])
+
+
+def get_jikan_manga_id(manga_title):
+    url = f'https://api.jikan.moe/v4/manga?q={manga_title}&limit=1'
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if data['data']:
+            first_result = data["data"][0]
+            id = first_result["mal_id"]
+            return (True, id)
+        else:
+            print(f"No Jikan Id found for title '{manga_title}'")
+            return (False, None)
+    else:
+        print("Request failed")
+        return (False, None)
+
+def get_jikan_manga_recommendations(manga_title):
+    # TODO: Perhaps do that as a preprocessing step because this can take around a second
+    # which would be noticeable when opening a modal dialog...
+    success, id = get_jikan_manga_id(manga_title)
+    if not success:
+        return []
+
+    url = f'https://api.jikan.moe/v4/manga/{id}/recommendations'
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if data["data"]:
+            recommendations = [e["entry"] for e in data["data"][:3]] 
+            titles = [r["title"] for r in recommendations]
+            urls = [r["url"] for r in recommendations]
+            return list(zip(titles, urls))
+        else:
+            print("No recommendations found")
+            return []
+    else:
+        print("Failed to get recommendations")
+        return []
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.MATERIA])
 app.title = "Manhuag Explorer"
