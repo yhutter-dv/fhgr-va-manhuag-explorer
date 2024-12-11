@@ -11,6 +11,11 @@ def load_preprocessed_data():
         preprocessed_data = json.load(f)
     return preprocessed_data
 
+def load_manga_data():
+    with open("./manga.json") as f:
+        manga_data = json.load(f)
+    return manga_data 
+
 scatter_number_of_mangas_per_tag_id = "scatter-number-of-mangas-per-tag-id"
 line_avg_score_for_tags_over_time_id = "line-avg-score-for-tags_over-time-id "
 bar_top_ratings_for_tags_id = "bar-top-ratings-for-tags-id "
@@ -19,10 +24,12 @@ timerange_slider_id = "time-ranger-slider-id"
 tags_dropdown_id = "tags-dropdown-id"
 
 preprocessed_data = load_preprocessed_data()
+manga_data = load_manga_data()
 tag_descriptions = preprocessed_data["tag_descriptions"]
 
 tags_df = pd.DataFrame(preprocessed_data["tags"])
 top_ratings_df = pd.DataFrame(preprocessed_data["top_ratings"])
+manga_df = pd.DataFrame(manga_data["mangas"])
 
 years = preprocessed_data["years"]
 # Years are already sorted in descending order
@@ -54,7 +61,8 @@ def update_bar_top_ratings_for_tags(timerange_slider_value, tags_dropdown_value)
         barmode="group",
         color='tag_id',
         text='title', 
-        labels={'rating': 'Manga Rating', 'year': 'Year'},)
+        labels={'rating': 'Manga Rating', 'year': 'Year'}
+    )
     return fig
 
 
@@ -117,6 +125,18 @@ def update_line_avg_score_for_tags_over_time(timerange_slider_value, tags_dropdo
     # fig_line.add_trace(go.Scatter(x=scatter_df['year'], y=scatter_df['rating'], mode='markers'))
     return fig 
 
+
+def update_bar_similar_mangas(manga_id):
+    # Find the matching manga and extract out similar mangas into its own data frame.
+    df_similar_mangas = manga_df[manga_df["id"] == manga_id].explode("similar_mangas")
+    df_similar_mangas = pd.DataFrame(df_similar_mangas['similar_mangas'].tolist())
+    fig = px.bar(
+        df_similar_mangas,
+        x='title',
+        y='similarity_score',
+    )
+    return fig
+
 def prepare_layout():
     header = dbc.NavbarSimple(
         brand="Manhuag Explorer",
@@ -158,10 +178,12 @@ def prepare_layout():
     	timerange_section,
    	], id="filter-settings", className="sticky-top p-1")
 
+    fig = update_bar_similar_mangas(0)
+
     similar_mangas = dbc.Card([
         dbc.CardBody([
             html.H4("Liked Solo Leveling?", className="text-primary"),
-            html.Div([dcc.Graph()])
+            html.Div([dcc.Graph(figure=fig)])
         ])
     ])
 

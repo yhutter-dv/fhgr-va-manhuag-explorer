@@ -9,6 +9,19 @@ def create_tag_id(tag):
 	# Tag Id: my_super_fancy_tag
 	return tag.replace(" ", "_").lower()
 
+def calculate_similarity_score(manga_a, manga_b):
+	# Compare the tags if most of them match we consider the manga as similar
+	matching_elements = list(set(manga_a["tags"]).intersection(manga_b["tags"])) 
+	max_number_of_matching_elements = len(manga_a["tags"])
+	number_of_matched_elements = len(matching_elements)
+
+	# Avoid division by zero error
+	if number_of_matched_elements == 0:
+		return 0
+
+	similarity_percentage = (100 / max_number_of_matching_elements) * number_of_matched_elements
+	return similarity_percentage / 100
+
 def main():
 	src_data_path = "data.csv" 
 	dest_data_path = "data_preprocessed.json" 
@@ -74,9 +87,10 @@ def main():
 
 	preprocessed_data["top_ratings"] = []
 
+
 	# Initialize dataframe in order to easily calculate some values for each tag such as average score per year etc.
 	manga_df = pd.DataFrame.from_dict(mangas)
-	print("Precalculating values (grab a coffee this might take a while) ...")
+	print("Precalculating statistical values ...")
 	for tag_description in preprocessed_data["tag_descriptions"]:
 		current_tag_id = tag_description["tag_id"]
 		current_tag = tag_description["tag_description"]
@@ -118,6 +132,23 @@ def main():
 			if (len(sorted_ratings) > 0):
 				preprocessed_data["top_ratings"].append(sorted_ratings[0]) 
 			preprocessed_data["tags"].append(tag_data_per_year)
+
+	# Calculate similarty rating between mangas
+	print("Calculating similarity ratings between mangas (grab a coffee this might take a while) ...")
+	for index, manga in enumerate(mangas):
+		similar_mangas = []
+		# Go trough each manga again and calcualte how similar those are to the current one
+		for compare_manga in mangas:
+			similar_manga = {
+				"id": compare_manga["id"],
+				"title": compare_manga["title"],
+				"similarity_score":  calculate_similarity_score(manga, compare_manga)
+			}
+			similar_mangas.append(similar_manga)
+
+		# Only keep top 10 results
+		most_similar_mangas = sorted(similar_mangas, key=lambda d: d['similarity_score'], reverse=True)[0:10]
+		manga["similar_mangas"] = most_similar_mangas 
 
 	# Save preprocessed data file
 	with open(dest_data_path, 'w', encoding='utf-8') as f:
