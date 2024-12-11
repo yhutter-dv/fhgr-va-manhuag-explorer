@@ -30,7 +30,7 @@ In order to run the Application execute the following command
 python3 main.py
 ```
 ## See it in Action
-TODO
+You can see it online [here](https://fhgr-va-manhuag-explorer-229692aab0ff.herokuapp.com/)
 
 ## References
 - [Dataset](https://www.kaggle.com/datasets/victorsoeiro/manga-manhwa-and-manhua-dataset)
