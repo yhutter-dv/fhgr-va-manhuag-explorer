@@ -43,10 +43,17 @@ tag_dropdown_options = [{ "label": t["tag_description"], "value": t["tag_id"] } 
     Output(component_id=bar_top_ratings_for_tags_id, component_property='figure'),
     Input(component_id=timerange_slider_id, component_property='value'),
     Input(component_id=tags_dropdown_id, component_property='value'),
+    Input(component_id=line_avg_score_for_tags_over_time_id, component_property='relayoutData'),
 )
-def update_bar_top_ratings_for_tags(timerange_slider_value, tags_dropdown_value):
+def update_bar_top_ratings_for_tags(timerange_slider_value, tags_dropdown_value, tags_over_time_data):
     min_year = timerange_slider_value[0]
     max_year = timerange_slider_value[1]
+
+    # Use min and max year from relayoutData if available
+    if tags_over_time_data != None and "xaxis.range[0]" in tags_over_time_data:
+        min_year = int(tags_over_time_data["xaxis.range[0]"])
+        max_year = int(tags_over_time_data["xaxis.range[1]"])
+
     tags_to_filter = []
     # The inital value if no element is selected can be a string such as 'action' instead of a list
     # God knows why...
