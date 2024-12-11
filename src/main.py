@@ -97,13 +97,18 @@ def update_scatter_number_of_mangas_per_tag(timerange_slider_value, tags_dropdow
     scatter_df = tags_df[(tags_df["year"] >= min_year) & (tags_df["year"] <= max_year) & (tags_df["tag_id"].isin(tags_to_filter))].copy()
     # Remove any rows where the average rating is NAN
     scatter_df = scatter_df.dropna(subset=['average_rating'])
+
+
+    # Create bubble size column which is a normalized value based on the average_rating
+    # If we did not do that the sizes of each bubble would stay the same if the values of the average ratings are close to each other 
+    scatter_df['bubble_size'] = (scatter_df['average_rating'] - scatter_df['average_rating'].min()) / (scatter_df['average_rating'].max() - scatter_df['average_rating'].min()) * 100 
     fig = px.scatter(scatter_df,
         x="year",
         y="number_of_mangas",
-        size="average_rating",
-        size_max=5.0,
+        size="bubble_size",
         color="tag_id",
         hover_name="tag_id",
+        hover_data={"bubble_size": False} # Remove bubble size from hover data
     )
     return fig
 
