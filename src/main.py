@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, callback, no_update
+from dash import Dash, dcc, html, Input, Output, callback, no_update, State
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import plotly.express as px
@@ -21,6 +21,10 @@ line_avg_score_for_tags_over_time_id = "line-avg-score-for-tags_over-time-id "
 bar_top_ratings_for_tags_id = "bar-top-ratings-for-tags-id "
 bar_similar_mangas_id = "bar-similar-mangas-id "
 similar_mangas_title_id = "similar-mangas-title-id"
+
+modal_manga_detail_id = "modal-manga-detail-id"
+modal_manga_detail_title_id = "modal-manga-detail-title-id"
+modal_manga_detail_body_id = "modal-manga-detail-body-id"
 
 timerange_slider_id = "time-ranger-slider-id"
 tags_dropdown_id = "tags-dropdown-id"
@@ -155,12 +159,41 @@ def update_bar_similar_mangas(top_results_data):
     df_similar_mangas = pd.DataFrame(df_similar_mangas['similar_mangas'].tolist())
     fig = px.bar(
         df_similar_mangas,
+        custom_data='id',
         x='title',
         y='similarity_score',
     )
 
     title = f"Liked '{manga_title}' ?"
     return (title, fig)
+
+@callback(
+    Output(component_id=modal_manga_detail_id, component_property='is_open'),
+    Output(component_id=modal_manga_detail_title_id, component_property='children'),
+    Output(component_id=modal_manga_detail_body_id, component_property='children'),
+    Input(component_id=bar_similar_mangas_id, component_property='clickData'),
+)
+def update_manga_detail_modal(similar_manga_data):
+    print(similar_manga_data)
+    if similar_manga_data == None:
+        return no_update
+    first_point = similar_manga_data["points"][0]
+    manga_id = first_point["customdata"][0]
+    manga = manga_df[manga_df["id"] == manga_id]
+    manga_title = manga["title"].iloc[0]
+    manga_description = manga["description"].iloc[0]
+    title = f"Details about '{manga_title}'"
+
+    # TODO: Get similar mangas via Jikan API
+    body = html.Div([
+        html.H3("Story"),
+        html.P(manga_description),
+        html.H3("You may also like"),
+        html.Ul([
+            html.Li(html.A("Link to Anime Planet", href='https://anime-planet.com', target='_blank')),
+        ]),
+    ])
+    return (True, title, body)
 
 def prepare_layout():
     header = dbc.NavbarSimple(
@@ -169,14 +202,20 @@ def prepare_layout():
         color="primary",
         dark=True,
     )
-    # header = html.Header([html.H1("Manhuag Explorer")])
 
-    initial_tag_dropdown_value = tag_dropdown_options[0]["value"]
+    modal_dialog = dbc.Modal([
+        dbc.ModalHeader(dbc.ModalTitle("Header", id=modal_manga_detail_title_id)),
+            dbc.ModalBody(id=modal_manga_detail_body_id),
+        ],
+        id=modal_manga_detail_id,
+        centered=True,
+        is_open=False,
+    )
 
     tags_dropdown = dcc.Dropdown(
         id=tags_dropdown_id,
         options=tag_dropdown_options,
-        value=initial_tag_dropdown_value,
+        value=tag_dropdown_options[0]["value"],
         multi=True, clearable=False
     )
 
@@ -252,7 +291,7 @@ def prepare_layout():
         dbc.Col(main_content, md=9)
     ]), className="container-fluid" )
 
-    return html.Div([header, dashboard])
+    return html.Div([header, dashboard, modal_dialog])
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.MATERIA])
 app.title = "Manhuag Explorer"
