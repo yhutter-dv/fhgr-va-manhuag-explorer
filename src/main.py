@@ -113,7 +113,8 @@ def update_scatter_number_of_mangas_per_tag(timerange_slider_value, tags_dropdow
         size="bubble_size",
         color="tag_id",
         hover_name="tag_id",
-        hover_data={"bubble_size": False} # Remove bubble size from hover data
+        hover_data={"bubble_size": False}, # Remove bubble size from hover data
+        labels={'year': 'Year', 'number_of_mangas': 'Number of Mangas'}
     )
     return fig
 
@@ -138,7 +139,13 @@ def update_line_avg_score_for_tags_over_time(timerange_slider_value, tags_dropdo
     # Remove any rows where the average rating is NAN
     line_df = line_df.dropna(subset=['average_rating'])
 
-    fig = px.line(line_df, x="year", y="average_rating", color="tag_id")
+    fig = px.line(
+        line_df,
+        x="year",
+        y="average_rating",
+        color="tag_id",
+        labels={'year': 'Year', 'average_rating': 'Average Rating'}
+    )
     return fig 
 
 
@@ -163,6 +170,7 @@ def update_bar_similar_mangas(top_results_data):
         custom_data='id',
         x='title',
         y='similarity_score',
+        labels={'title': 'Manga Title', 'similarity_score': 'Similarity Score'}
     )
 
     title = f"Liked '{manga_title}' ?"
