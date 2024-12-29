@@ -17,16 +17,19 @@ def load_manga_data():
         manga_data = json.load(f)
     return manga_data 
 
+plotly_theme = "plotly_white"
+
 scatter_number_of_mangas_per_tag_id = "scatter-number-of-mangas-per-tag-id"
 line_avg_score_for_tags_over_time_id = "line-avg-score-for-tags_over-time-id "
 bar_top_ratings_for_tags_id = "bar-top-ratings-for-tags-id "
 bar_similar_mangas_id = "bar-similar-mangas-id "
 similar_mangas_title_id = "similar-mangas-title-id"
-plotly_theme = "plotly_white"
 
 modal_manga_detail_id = "modal-manga-detail-id"
 modal_manga_detail_title_id = "modal-manga-detail-title-id"
 modal_manga_detail_body_id = "modal-manga-detail-body-id"
+modal_manga_detail_loading_spinner_id = "modal-manga-detail-loading-spinner-id"
+modal_manga_detail_loading_spinner_content_id = "modal-manga-detail-loading-spinner-content-id"
 
 timerange_slider_id = "time-ranger-slider-id"
 tags_dropdown_id = "tags-dropdown-id"
@@ -45,6 +48,19 @@ max_year = years[0]
 min_year = years[-1]
 tag_dropdown_options = [{ "label": f"{t['tag_description']} ({t['num_mangas_total']})", "value": t["tag_id"] } for t in tag_descriptions]
 
+def get_manga_from_click_data(click_data):
+    first_point = click_data["points"][0]
+    manga_id = first_point["customdata"][0]
+    manga = manga_df[manga_df["id"] == manga_id]
+    return manga
+
+def get_dropdown_value_as_list(dropdown_value):
+    # The inital value if one element is selected can be a string such as 'action' instead of a list
+    if type(dropdown_value) is list:
+        return dropdown_value
+    else:
+        return [dropdown_value]
+
 @callback(
     Output(component_id=bar_top_ratings_for_tags_id, component_property='figure'),
     Input(component_id=timerange_slider_id, component_property='value'),
@@ -60,13 +76,7 @@ def update_bar_top_ratings_for_tags(timerange_slider_value, tags_dropdown_value,
         min_year = int(tags_over_time_data["xaxis.range[0]"])
         max_year = int(tags_over_time_data["xaxis.range[1]"])
 
-    tags_to_filter = []
-    # The inital value if no element is selected can be a string such as 'action' instead of a list
-    # God knows why...
-    if type(tags_dropdown_value) is list:
-        tags_to_filter = tags_dropdown_value
-    else:
-        tags_to_filter = [tags_dropdown_value]
+    tags_to_filter = get_dropdown_value_as_list(tags_dropdown_value)
 
     # Filter by year and tags
     bar_df = top_ratings_df[(top_ratings_df["year"] >= min_year) & (top_ratings_df["year"] <= max_year) & (top_ratings_df["tag_id"].isin(tags_to_filter))].copy()
@@ -92,13 +102,7 @@ def update_bar_top_ratings_for_tags(timerange_slider_value, tags_dropdown_value,
 def update_scatter_number_of_mangas_per_tag(timerange_slider_value, tags_dropdown_value):
     min_year = timerange_slider_value[0]
     max_year = timerange_slider_value[1]
-    tags_to_filter = []
-    # The inital value if no element is selected can be a string such as 'action' instead of a list
-    # God knows why...
-    if type(tags_dropdown_value) is list:
-        tags_to_filter = tags_dropdown_value
-    else:
-        tags_to_filter = [tags_dropdown_value]
+    tags_to_filter = get_dropdown_value_as_list(tags_dropdown_value)
 
     # Filter by year and tags
     scatter_df = tags_df[(tags_df["year"] >= min_year) & (tags_df["year"] <= max_year) & (tags_df["tag_id"].isin(tags_to_filter))].copy()
@@ -129,13 +133,7 @@ def update_scatter_number_of_mangas_per_tag(timerange_slider_value, tags_dropdow
 def update_line_avg_score_for_tags_over_time(timerange_slider_value, tags_dropdown_value):
     min_year = timerange_slider_value[0]
     max_year = timerange_slider_value[1]
-    tags_to_filter = []
-    # The inital value if no element is selected can be a string such as 'action' instead of a list
-    # God knows why...
-    if type(tags_dropdown_value) is list:
-        tags_to_filter = tags_dropdown_value
-    else:
-        tags_to_filter = [tags_dropdown_value]
+    tags_to_filter = get_dropdown_value_as_list(tags_dropdown_value)
 
     # Filter by year and tags
     line_df = tags_df[(tags_df["year"] >= min_year) & (tags_df["year"] <= max_year) & (tags_df["tag_id"].isin(tags_to_filter))].copy()
@@ -187,48 +185,67 @@ def update_bar_similar_mangas(top_results_data):
     Output(component_id=modal_manga_detail_body_id, component_property='children'),
     Input(component_id=bar_similar_mangas_id, component_property='clickData'),
 )
-def update_manga_detail_modal(similar_manga_data):
-    if similar_manga_data == None:
+def update_manga_detail_modal(click_data):
+    if click_data == None:
         return no_update
-    first_point = similar_manga_data["points"][0]
-    manga_id = first_point["customdata"][0]
-    manga = manga_df[manga_df["id"] == manga_id]
+
+    manga = get_manga_from_click_data(click_data)
     manga_title = manga["title"].iloc[0]
     manga_description = manga["description"].iloc[0]
-
-    # Get recommendations via Jikan REST API
-    # See here for more information: https://docs.api.jikan.moe/
-    # TODO: This is pretty slow -> preprocess the data (takes 10 hours though as it takes roughly 1 second per element and we have around 35000 entries)
-    # recommendations = get_jikan_manga_recommendations(manga_title)
-    # recommendation_title = "No recommendations found"
-    # if len(recommendations) > 0:
-    #     recommendation_title = "You may also like"
-    # list_elements = []
-
-    # # Create list elements for each recommendation
-    # for recommendation in recommendations:
-    #     title, url = recommendation
-    #     list_element = html.Li(html.A(title, href=url, target='_blank'))
-    #     list_elements.append(list_element)
 
     body = html.Div([
         html.H3("Story"),
         html.P(manga_description),
-        # html.H3("You may also like"),
-        # html.Ul(list_elements),
     ])
     return (True, manga_title, body)
+
+@callback(
+    Output(component_id=modal_manga_detail_loading_spinner_content_id, component_property='children'),
+    Input(component_id=bar_similar_mangas_id, component_property='clickData'),
+)
+def update_manga_detail_modal_similar_manga_content(click_data):
+    if click_data == None:
+        return no_update
+
+    manga = get_manga_from_click_data(click_data)
+    manga_title = manga["title"].iloc[0]
+
+    # Get recommendations via Jikan REST API
+    # See here for more information: https://docs.api.jikan.moe/
+    recommendations = get_jikan_manga_recommendations(manga_title)
+    recommendation_title = "No recommendations found"
+    if len(recommendations) > 0:
+        recommendation_title = "You may also like"
+    list_elements = []
+
+    # Create list elements for each recommendation
+    for recommendation in recommendations:
+        title, url = recommendation
+        list_element = html.Li(html.A(title, href=url, target='_blank'))
+        list_elements.append(list_element)
+
+    return html.Div([
+        html.H3(recommendation_title),
+        html.Ul(list_elements)
+    ])
 
 def prepare_layout():
     header = html.Div([html.H3("Manhuag Explorer", className="text-white fw-bold")], className="p-2 bg-primary")
 
     modal_dialog = dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle("Header", id=modal_manga_detail_title_id)),
-            dbc.ModalBody(id=modal_manga_detail_body_id),
+            dbc.ModalBody(html.Div([
+                html.Div(id=modal_manga_detail_body_id),
+                dcc.Loading(
+                    id=modal_manga_detail_loading_spinner_id,
+                    children=[html.Div([html.Div(id=modal_manga_detail_loading_spinner_content_id)])],
+                    type="default"
+                )
+            ]))
         ],
         id=modal_manga_detail_id,
         centered=True,
-        is_open=False,
+        is_open=False
     )
 
     tags_dropdown = dcc.Dropdown(
