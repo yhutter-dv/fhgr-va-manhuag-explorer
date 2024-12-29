@@ -36,3 +36,5 @@ You can see it online [here](https://fhgr-va-manhuag-explorer-229692aab0ff.herok
 - [Dataset](https://www.kaggle.com/datasets/victorsoeiro/manga-manhwa-and-manhua-dataset)
 - [Jikan REST API](https://jikan.moe/)
 - [How to deploy to Heroku](https://towardsdatascience.com/deploying-your-dash-app-to-heroku-the-magical-guide-39bd6a0c586c)
+- [Style Dash Components](https://hellodash.pythonanywhere.com/adding-themes/dcc-components)
+- [Plotly Themes](https://plotly.com/python/templates/)

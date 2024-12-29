@@ -22,6 +22,7 @@ line_avg_score_for_tags_over_time_id = "line-avg-score-for-tags_over-time-id "
 bar_top_ratings_for_tags_id = "bar-top-ratings-for-tags-id "
 bar_similar_mangas_id = "bar-similar-mangas-id "
 similar_mangas_title_id = "similar-mangas-title-id"
+plotly_theme = "plotly_white"
 
 modal_manga_detail_id = "modal-manga-detail-id"
 modal_manga_detail_title_id = "modal-manga-detail-title-id"
@@ -76,7 +77,8 @@ def update_bar_top_ratings_for_tags(timerange_slider_value, tags_dropdown_value,
         barmode="group",
         color='tag_id',
         text='title', 
-        labels={'rating': 'Manga Rating', 'year': 'Year'}
+        labels={'rating': 'Manga Rating', 'year': 'Year'},
+        template=plotly_theme
     )
     return fig
 
@@ -114,7 +116,8 @@ def update_scatter_number_of_mangas_per_tag(timerange_slider_value, tags_dropdow
         color="tag_id",
         hover_name="tag_id",
         hover_data={"bubble_size": False}, # Remove bubble size from hover data
-        labels={'year': 'Year', 'number_of_mangas': 'Number of Mangas'}
+        labels={'year': 'Year', 'number_of_mangas': 'Number of Mangas'},
+        template=plotly_theme
     )
     return fig
 
@@ -144,7 +147,8 @@ def update_line_avg_score_for_tags_over_time(timerange_slider_value, tags_dropdo
         x="year",
         y="average_rating",
         color="tag_id",
-        labels={'year': 'Year', 'average_rating': 'Average Rating'}
+        labels={'year': 'Year', 'average_rating': 'Average Rating'},
+        template=plotly_theme
     )
     return fig 
 
@@ -170,7 +174,8 @@ def update_bar_similar_mangas(top_results_data):
         custom_data='id',
         x='title',
         y='similarity_score',
-        labels={'title': 'Manga Title', 'similarity_score': 'Similarity Score'}
+        labels={'title': 'Manga Title', 'similarity_score': 'Similarity Score'},
+        template=plotly_theme
     )
 
     title = f"Liked '{manga_title}' ?"
@@ -215,12 +220,7 @@ def update_manga_detail_modal(similar_manga_data):
     return (True, manga_title, body)
 
 def prepare_layout():
-    header = dbc.NavbarSimple(
-        brand="Manhuag Explorer",
-        brand_href="#",
-        color="primary",
-        dark=True,
-    )
+    header = html.Div([html.H3("Manhuag Explorer", className="text-white fw-bold")], className="p-2 bg-primary")
 
     modal_dialog = dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle("Header", id=modal_manga_detail_title_id)),
@@ -261,31 +261,35 @@ def prepare_layout():
     	timerange_section,
    	], id="filter-settings", className="sticky-top p-1")
 
+    graph_style = {
+        "height": "25.7vh" # Each graph should take around 25% of the available screen height
+    }
+
     similar_mangas = dbc.Card([
         dbc.CardBody([
             html.H4("Select a Manga", id=similar_mangas_title_id, className="text-primary"),
-            html.Div([dcc.Graph(id=bar_similar_mangas_id)])
+            html.Div([dcc.Graph(id=bar_similar_mangas_id, style=graph_style)])
         ])
     ])
 
     top_results_for_tag = dbc.Card([
         dbc.CardBody([
             html.H4("Top Results for Tags", className="text-primary"),
-            html.Div([dcc.Graph(id=bar_top_ratings_for_tags_id)])
+            html.Div([dcc.Graph(id=bar_top_ratings_for_tags_id, style=graph_style)])
         ])
     ])
 
     average_score_for_tags_over_time = dbc.Card([
         dbc.CardBody([
             html.H4("Average Score for Tags over Time", className="text-primary"),
-            html.Div([dcc.Graph(id=line_avg_score_for_tags_over_time_id)])
+            html.Div([dcc.Graph(id=line_avg_score_for_tags_over_time_id, style=graph_style)])
         ])
     ])
 
     number_of_mangas_per_tag = dbc.Card([
         dbc.CardBody([
             html.H4("Number of Mangas per Tag", className="text-primary"),
-            html.Div([dcc.Graph(id=scatter_number_of_mangas_per_tag_id)]),
+            html.Div([dcc.Graph(id=scatter_number_of_mangas_per_tag_id, style=graph_style)])
         ])
     ])
 
@@ -297,7 +301,6 @@ def prepare_layout():
             dbc.Row([
                 dbc.Col(top_results_for_tag, md=6),
                 dbc.Col(average_score_for_tags_over_time, md=6),
-
             ], className="py-1"),
             dbc.Row([
                 dbc.Col(number_of_mangas_per_tag, md=12)
@@ -305,12 +308,12 @@ def prepare_layout():
         ])
     ])
 
-    dashboard = dbc.Container(dbc.Row([
+    dashboard = html.Div(dbc.Row([
         dbc.Col(filter_settings, md=3),
         dbc.Col(main_content, md=9)
-    ]), className="container-fluid" )
+    ]))
 
-    return html.Div([header, dashboard, modal_dialog])
+    return html.Div([header, dashboard, modal_dialog], className="container-fluid px-0 dbc")
 
 
 def get_jikan_manga_id(manga_title):
@@ -352,7 +355,7 @@ def get_jikan_manga_recommendations(manga_title):
         print("Failed to get recommendations")
         return []
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.MATERIA])
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.title = "Manhuag Explorer"
 app.layout = prepare_layout()
 server = app.server
