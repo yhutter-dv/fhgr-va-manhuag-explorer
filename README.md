@@ -1,4 +1,9 @@
 # Manga and Manwha Data Explorer (Manhuag Explorer)
+<div class="center">
+    <img src="./assets/screenshot.png" alt="Screenshot"/>
+</div>
+
+## About
 This is a simple Dashboard written with Python for the `Visual Analytics Module @ FHGR` which explores a `Manga`, `Manwha` Dataset from `Anime Planet`.
 The purpose of this Dashboard is to find visual interesting patterns based on `Tags`.
 
